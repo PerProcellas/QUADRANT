@@ -1,0 +1,94 @@
+import streamlit as st
+import google.generativeai as genai
+
+# Configuration de la page pour le projet QUADRANT
+st.set_page_config(
+    page_title="QUADRANT - USS PROCELLAS", 
+    layout="wide", 
+    initial_sidebar_state="expanded"
+)
+
+# --- DESIGN LCARS (Style Star Trek) ---
+st.markdown("""
+    <style>
+    .main { background-color: #000000; color: #FF9900; }
+    .stSidebar { background-color: #1a1a1a; border-right: 2px solid #CC6600; }
+    h1, h2, h3 { color: #CC6600; font-family: 'Courier New', Courier, monospace; }
+    .stButton>button { background-color: #444444; color: white; border: 1px solid #CC6600; width: 100%; }
+    .stTextInput>div>div>input { background-color: #222222; color: #FF9900; border: 1px solid #CC6600; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- NAVIGATION DES SECTEURS ---
+st.sidebar.title("📡 PROJET QUADRANT")
+st.sidebar.subheader("Système : USS PROCELLAS")
+st.sidebar.markdown("---")
+
+secteur = st.sidebar.radio("Navigation :", 
+    ["🏠 Passerelle", "🏋️ Holodeck", "🍎 Le Mess", "🧪 Bio-Lab", "🗺️ Astrogation", "🎮 Quartiers"])
+
+st.sidebar.markdown("---")
+st.sidebar.info("IA de bord : Zora active")
+
+# --- CONFIGURATION ZORA (API KEY) ---
+# Champ pour entrer votre clé API Gemini sur l'interface
+api_key = st.sidebar.text_input("Clé d'activation Zora (API)", type="password")
+
+if api_key:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    st.sidebar.warning("Zora attend sa clé d'activation.")
+
+# --- AFFICHAGE DES SECTEURS ---
+if secteur == "🏠 Passerelle":
+    st.title("🛰️ Passerelle de Commandement")
+    st.header("État Global du Système USS PROCELLAS")
+    st.write(f"Bienvenue, Commandant Renaud. Tous les systèmes sont opérationnels.")
+    col1, col2 = st.columns(2)
+    col1.metric("Projet", "QUADRANT", "Actif")
+    col2.metric("IA de bord", "ZORA", "En ligne")
+
+elif secteur == "🏋️ Holodeck":
+    st.title("🏋️ Holodeck")
+    st.subheader("Entraînement & Renforcement")
+    st.info("Programmes de musculation et cardio prêts.")
+
+elif secteur == "🍎 Le Mess":
+    st.title("🍎 Le Mess / Cuisines")
+    st.subheader("Gestion de l'énergie (Nutrition)")
+    st.write("Analyse des apports nutritionnels.")
+
+elif secteur == "🧪 Bio-Lab":
+    st.title("🧪 Bio-Lab / Infirmerie")
+    st.subheader("Santé & Protocole Zéro Médicament")
+    st.success("Monitoring actif : Intégrité physique 100%.")
+
+elif secteur == "🗺️ Astrogation":
+    st.title("🗺️ Astrogation")
+    st.subheader("Project Chest & Stratégie")
+    st.write("Priorité : Règle du 'Oui, mais pas maintenant'.")
+
+elif secteur == "🎮 Quartiers":
+    st.title("🎮 Quartiers de l'Équipage")
+    st.subheader("Gaming, Dessin, Musique & Détente")
+    st.write("Régénération mentale en cours.")
+
+# --- INTERCOM ZORA ---
+st.markdown("---")
+st.subheader("🎙️ Intercom Zora")
+user_command = st.text_input("En attente de vos ordres, Commandant...")
+
+if user_command and api_key:
+    with st.spinner("Zora analyse..."):
+        # Instructions pour donner la personnalité de Zora
+        system_prompt = (
+            "Tu es Zora, l'IA de bord du système USS PROCELLAS. Projet QUADRANT. "
+            "Tu t'adresses au Commandant Renaud (46 ans). Ton ton est inspiré de Star Trek : "
+            "professionnel, calme, analytique et dévoué. Réponds de manière concise."
+        )
+        try:
+            response = model.generate_content(f"{system_prompt}\n\nCommande : {user_command}")
+            st.chat_message("assistant").write(response.text)
+        except Exception as e:
+            st.error(f"Erreur de communication : {e}")
