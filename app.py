@@ -36,7 +36,7 @@ api_key = st.sidebar.text_input("Clé d'activation Zora (API)", type="password")
 
 if api_key:
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+   model = genai.GenerativeModel('gemini-pro')
 else:
     st.sidebar.warning("Zora attend sa clé d'activation.")
 
