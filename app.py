@@ -114,14 +114,30 @@ user_command = st.text_input("En attente de vos ordres, Commandant...")
 
 if user_command and api_key:
     with st.spinner("Zora analyse..."):
-        # Instructions pour donner la personnalité de Zora
         system_prompt = (
             "Tu es Zora, l'IA de bord du système USS PROCELLAS. Projet QUADRANT. "
             "Tu t'adresses au Commandant Renaud (46 ans). Ton ton est inspiré de Star Trek : "
             "professionnel, calme, analytique et dévoué. Réponds de manière concise."
         )
         try:
+            # 1. Demander la réponse à Gemini
             response = model.generate_content(f"{system_prompt}\n\nCommande : {user_command}")
-            st.chat_message("assistant").write(response.text)
+            reponse_texte = response.text
+            
+            # 2. Affichage du texte dans l'intercom
+            st.chat_message("assistant").write(reponse_texte)
+            
+            # 3. --- MODULE VOCAL ---
+            from gtts import gTTS
+            import io
+
+            # Création de la voix
+            tts = gTTS(text=reponse_texte, lang='fr')
+            audio_buffer = io.BytesIO()
+            tts.write_to_fp(audio_buffer)
+            
+            # Affichage du lecteur audio
+            st.audio(audio_buffer, format="audio/mp3")
+            
         except Exception as e:
             st.error(f"Erreur de communication : {e}")
