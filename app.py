@@ -61,10 +61,31 @@ if secteur == "🏠 Passerelle":
     col1.metric("Projet", "QUADRANT", "Actif")
     col2.metric("IA de bord", "ZORA", "En ligne")
 
-elif secteur == "🏋️ Holodeck":
-    st.title("🏋️ Holodeck")
-    st.subheader("Entraînement & Renforcement")
-    st.info("Programmes de musculation et cardio prêts.")
+eelif secteur == "🏋️ Holodeck":
+    st.title("🏋️ Holodeck - Journal d'Entraînement")
+    
+    with st.expander("📝 Enregistrer une nouvelle séance", expanded=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            type_seance = st.selectbox("Type d'effort", ["Musculation", "Cardio", "Mobilité"])
+            focus = st.text_input("Focus (ex: Pectoraux, Jambes, Course)")
+        with col2:
+            duree = st.number_input("Durée (minutes)", min_value=0, value=45)
+            intensite = st.slider("Intensité ressentie", 1, 10, 5)
+        
+        notes = st.text_area("Observations (Exercices, charges, ressenti...)")
+        
+        if st.button("🚀 Transmettre au journal de bord"):
+            # Pour l'instant, on l'affiche, plus tard on le stockera en base de données
+            st.success(f"Données enregistrées : Séance de {focus} ({duree} min).")
+            st.session_state['last_workout'] = f"{type_seance} - {focus}"
+
+    st.divider()
+    st.subheader("📊 Historique Récent")
+    if 'last_workout' in st.session_state:
+        st.write(f"Dernière activité synchronisée : **{st.session_state['last_workout']}**")
+    else:
+        st.write("Aucune donnée enregistrée pour ce cycle.")
 
 elif secteur == "🍎 Le Mess":
     st.title("🍎 Le Mess / Cuisines")
