@@ -61,7 +61,7 @@ if secteur == "🏠 Passerelle":
     col1.metric("Projet", "QUADRANT", "Actif")
     col2.metric("IA de bord", "ZORA", "En ligne")
 
-eelif secteur == "🏋️ Holodeck":
+elif secteur == "🏋️ Holodeck":
     st.title("🏋️ Holodeck - Journal d'Entraînement")
     
     with st.expander("📝 Enregistrer une nouvelle séance", expanded=True):
