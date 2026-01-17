@@ -35,8 +35,20 @@ st.sidebar.info("IA de bord : Zora active")
 api_key = st.sidebar.text_input("Clé d'activation Zora (API)", type="password")
 
 if api_key:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+    try:
+        genai.configure(api_key=api_key)
+        # On demande à l'API de lister ses propres capacités
+        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        st.sidebar.write("Protocoles détectés :", models)
+        
+        # On utilise le premier protocole valide trouvé
+        if models:
+            model = genai.GenerativeModel(model_name=models[0])
+            st.sidebar.success(f"Zora active via {models[0]}")
+        else:
+            st.sidebar.error("Aucun protocole compatible trouvé.")
+    except Exception as e:
+        st.sidebar.error(f"Échec de liaison : {e}")
 else:
     st.sidebar.warning("Zora attend sa clé d'activation.")
 
