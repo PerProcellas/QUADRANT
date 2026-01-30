@@ -109,26 +109,39 @@ user_in = st.text_input(f"🎙️ Intercom Zora ({secteur_actif})", key=f"input_
 
 if user_in:
     if not api_key:
-        st.warning("⚠️ Commandant, Zora nécessite sa clé d'activation dans la barre latérale.")
+        st.warning("⚠️ Commandant, Zora nécessite sa clé d'activation.")
     else:
-        with st.spinner("Transmission à Zora en cours..."):
+        with st.spinner("Zora consulte les archives..."):
             try:
-                # 1. Préparation du prompt
-                full_p = f"{current_cfg['prompt']} Tu parles au Commandant Renaud. Système QUADRANT. Réponds de façon concise et immersive. Ordre : {user_in}"
+                # 1. RÉCUPÉRATION DU CONTEXTE (Lecture du Journal)
+                journal_complet = charger_journal()
+                # On ne prend que les 10 dernières entrées pour ne pas saturer l'IA
+                context_historique = "\n".join([
+                    f"- {e['date']} [{e['secteur']}]: {e['contenu']}" 
+                    for e in journal_complet[-10:]
+                ])
+
+                # 2. PRÉPARATION DU PROMPT AUGMENTÉ
+                # On dit à Zora qu'elle a accès aux archives
+                full_p = (
+                    f"{current_cfg['prompt']}\n\n"
+                    f"SYSTÈME QUADRANT - ARCHIVES RÉCENTES :\n{context_historique}\n\n"
+                    f"Tu t'adresses au Commandant Renaud. Utilise les archives si la question porte "
+                    f"sur le passé. Réponds de façon concise et immersive.\n"
+                    f"ORDRE : {user_in}"
+                )
                 
-                # 2. Appel API
+                # 3. APPEL API
                 res = model.generate_content(full_p)
                 reponse_texte = res.text
                 
-                # 3. Affichage immédiat
+                # 4. AFFICHAGE ET VOIX
                 st.chat_message("assistant").write(reponse_texte)
                 
-                # 4. Génération audio
                 audio = gTTS(text=reponse_texte, lang=current_cfg['voice'])
                 ptr = io.BytesIO()
                 audio.write_to_fp(ptr)
                 st.audio(ptr, format="audio/mp3")
                 
             except Exception as e:
-                st.error(f"❌ Panne de l'intercom : {e}")
-        
+                st.error(f"❌ Erreur de traitement : {e}")
