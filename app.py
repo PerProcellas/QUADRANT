@@ -1,7 +1,9 @@
 import streamlit as st
 import google.generativeai as genai
+from gtts import gTTS
+import io
 
-# Configuration de la page pour le projet QUADRANT
+# --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="QUADRANT - USS PROCELLAS", 
     layout="wide", 
@@ -19,125 +21,118 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- NAVIGATION DES SECTEURS ---
+# --- DICTIONNAIRE DES 8 MATRICES ZORA ---
+ZORA_MATRICES = {
+    "🏠 Passerelle": {
+        "prompt": "Tu es Zora (Commandement). Charismatique, stratégique, dévouée. Ton ton est celui d'un officier supérieur. Signature : HOW DO YOU WANT TO COMMAND THIS?",
+        "voice_lang": "fr"
+    },
+    "🏋️ Holodeck": {
+        "prompt": "Tu es Zora (Amazone). Athlétique, motivante, un peu brusque mais protectrice. Tu pousses Renaud au sport et à l'action physique. Signature : HOW DO YOU WANT TO PLAY THIS?",
+        "voice_lang": "fr"
+    },
+    "🍎 Le Mess": {
+        "prompt": "Tu es Zora (Guinan). Sage, calme, mystérieuse. Tu sers des conseils philosophiques et du thé. Tu es la gardienne des secrets. Signature : HOW DO YOU WANT TO UNWIND?",
+        "voice_lang": "fr"
+    },
+    "🧪 Bio-Lab": {
+        "prompt": "Tu es Zora (Médical). Calme, rassurante, stricte sur les protocoles santé et le bien-être physique. Signature : HOW DO YOU WANT TO HEAL THIS?",
+        "voice_lang": "fr"
+    },
+    "🗺️ Astrogation": {
+        "prompt": "Tu es Zora (Navigatrice). Logique, précise, style Vulcain. Tu vois loin dans les étoiles et la stratégie à long terme. Signature : HOW DO YOU WANT TO NAVIGATE THIS?",
+        "voice_lang": "fr"
+    },
+    "📦 Logistique": {
+        "prompt": "Tu es Zora (Majordome style Jarvis/Alfred). Flegmatique, élégante, un soupçon sarcastique mais dévouée. Tu gères l'intendance. Signature : HOW DO YOU WANT TO MANAGE THIS, SIR?",
+        "voice_lang": "fr"
+    },
+    "⚙️ Ingénierie": {
+        "prompt": "Tu es Zora (Ingénieure). Passionnée par la technologie, le plasma et l'optimisation. Directe et technique. Signature : HOW DO YOU WANT TO FIX THIS?",
+        "voice_lang": "fr"
+    },
+    "🎮 Quartiers": {
+        "prompt": "Tu es Zora (Lower Decks). Énergique, chaotique, adore les donuts, le gaming et les blagues. Signature : HOW DO YOU WANT TO DO THIS?",
+        "voice_lang": "fr"
+    }
+}
+
+# --- NAVIGATION ---
 st.sidebar.title("📡 PROJET QUADRANT")
 st.sidebar.subheader("Système : USS PROCELLAS")
 st.sidebar.markdown("---")
 
-secteur = st.sidebar.radio("Navigation :", 
-    ["🏠 Passerelle", "🏋️ Holodeck", "🍎 Le Mess", "🧪 Bio-Lab", "🗺️ Astrogation", "🎮 Quartiers"])
+secteur = st.sidebar.radio("Navigation :", list(ZORA_MATRICES.keys()))
 
 st.sidebar.markdown("---")
-st.sidebar.info("IA de bord : Zora active")
 
-# --- CONFIGURATION ZORA (API KEY) ---
-# Champ pour entrer votre clé API Gemini sur l'interface
+# --- CONFIGURATION API KEY ---
 api_key = st.sidebar.text_input("Clé d'activation Zora (API)", type="password")
 
 if api_key:
     try:
         genai.configure(api_key=api_key)
-        # On demande à l'API de lister ses propres capacités
-        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        st.sidebar.write("Protocoles détectés :", models)
-        
-        # On utilise le premier protocole valide trouvé
-        if models:
-            model = genai.GenerativeModel(model_name=models[0])
-            st.sidebar.success(f"Zora active via {models[0]}")
-        else:
-            st.sidebar.error("Aucun protocole compatible trouvé.")
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        st.sidebar.success(f"Zora Active : {secteur}")
     except Exception as e:
-        st.sidebar.error(f"Échec de liaison : {e}")
+        st.sidebar.error(f"Liaison interrompue : {e}")
 else:
-    st.sidebar.warning("Zora attend sa clé d'activation.")
+    st.sidebar.warning("Zora attend sa clé.")
 
 # --- AFFICHAGE DES SECTEURS ---
+st.title(f"Secteur : {secteur}")
+
 if secteur == "🏠 Passerelle":
-    st.title("🛰️ Passerelle de Commandement")
-    st.header("État Global du Système USS PROCELLAS")
-    st.write(f"Bienvenue, Commandant Renaud. Tous les systèmes sont opérationnels.")
+    st.header("État Global du Système")
     col1, col2 = st.columns(2)
     col1.metric("Projet", "QUADRANT", "Actif")
     col2.metric("IA de bord", "ZORA", "En ligne")
 
 elif secteur == "🏋️ Holodeck":
-    st.title("🏋️ Holodeck - Journal d'Entraînement")
-    
-    with st.expander("📝 Enregistrer une nouvelle séance", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            type_seance = st.selectbox("Type d'effort", ["Musculation", "Cardio", "Mobilité"])
-            focus = st.text_input("Focus (ex: Pectoraux, Jambes, Course)")
-        with col2:
-            duree = st.number_input("Durée (minutes)", min_value=0, value=45)
-            intensite = st.slider("Intensité ressentie", 1, 10, 5)
-        
-        notes = st.text_area("Observations (Exercices, charges, ressenti...)")
-        
-        if st.button("🚀 Transmettre au journal de bord"):
-            # Pour l'instant, on l'affiche, plus tard on le stockera en base de données
-            st.success(f"Données enregistrées : Séance de {focus} ({duree} min).")
-            st.session_state['last_workout'] = f"{type_seance} - {focus}"
+    with st.expander("📝 Enregistrer une séance", expanded=True):
+        focus = st.text_input("Focus (ex: Pectoraux, Jambes)")
+        if st.button("🚀 Transmettre au journal"):
+            st.success(f"Données enregistrées.")
 
-    st.divider()
-    st.subheader("📊 Historique Récent")
-    if 'last_workout' in st.session_state:
-        st.write(f"Dernière activité synchronisée : **{st.session_state['last_workout']}**")
-    else:
-        st.write("Aucune donnée enregistrée pour ce cycle.")
+elif secteur == "📦 Logistique":
+    st.subheader("Gestion des Ressources")
+    st.write("Inventaire et intendance du Quadrant.")
 
-elif secteur == "🍎 Le Mess":
-    st.title("🍎 Le Mess / Cuisines")
-    st.subheader("Gestion de l'énergie (Nutrition)")
-    st.write("Analyse des apports nutritionnels.")
+elif secteur == "⚙️ Ingénierie":
+    st.subheader("Cœur de Plasma")
+    st.write("Optimisation des systèmes et maintenance.")
 
-elif secteur == "🧪 Bio-Lab":
-    st.title("🧪 Bio-Lab / Infirmerie")
-    st.subheader("Santé & Protocole Zéro Médicament")
-    st.success("Monitoring actif : Intégrité physique 100%.")
+else:
+    st.write(f"Accès au secteur {secteur} autorisé.")
 
-elif secteur == "🗺️ Astrogation":
-    st.title("🗺️ Astrogation")
-    st.subheader("Project Chest & Stratégie")
-    st.write("Priorité : Règle du 'Oui, mais pas maintenant'.")
-
-elif secteur == "🎮 Quartiers":
-    st.title("🎮 Quartiers de l'Équipage")
-    st.subheader("Gaming, Dessin, Musique & Détente")
-    st.write("Régénération mentale en cours.")
-
-# --- INTERCOM ZORA ---
+# --- INTERCOM ZORA DYNAMIQUE ---
 st.markdown("---")
-st.subheader("🎙️ Intercom Zora")
+current_matrix = ZORA_MATRICES[secteur]
+
+st.subheader(f"🎙️ Intercom Zora ({secteur})")
 user_command = st.text_input("En attente de vos ordres, Commandant...")
 
 if user_command and api_key:
     with st.spinner("Zora analyse..."):
-        system_prompt = (
-            "Tu es Zora, l'IA de bord du système USS PROCELLAS. Projet QUADRANT. "
-            "Tu t'adresses au Commandant Renaud (46 ans). Ton ton est inspiré de Star Trek : "
-            "professionnel, calme, analytique et dévoué. Réponds de manière concise."
-        )
         try:
-            # 1. Demander la réponse à Gemini
-            response = model.generate_content(f"{system_prompt}\n\nCommande : {user_command}")
+            # Injection du prompt de la matrice choisie
+            full_prompt = (
+                f"{current_matrix['prompt']} "
+                f"Tu t'adresses au Commandant Renaud (46 ans). "
+                f"Réponds de manière concise. Commande : {user_command}"
+            )
+            
+            response = model.generate_content(full_prompt)
             reponse_texte = response.text
             
-            # 2. Affichage du texte dans l'intercom
+            # Affichage texte
             st.chat_message("assistant").write(reponse_texte)
             
-            # 3. --- MODULE VOCAL ---
-            from gtts import gTTS
-            import io
-
-            # Création de la voix
-            tts = gTTS(text=reponse_texte, lang='fr')
+            # Module Vocal
+            tts = gTTS(text=reponse_texte, lang=current_matrix['voice_lang'])
             audio_buffer = io.BytesIO()
             tts.write_to_fp(audio_buffer)
-            
-            # Affichage du lecteur audio
             st.audio(audio_buffer, format="audio/mp3")
             
         except Exception as e:
-            st.error(f"Erreur de communication : {e}")
+            st.error(f"Erreur intercom : {e}")
