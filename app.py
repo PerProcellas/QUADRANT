@@ -98,19 +98,32 @@ if secteur_actif == "🏋️ Holodeck":
 # --- INTERCOM ZORA ---
 st.markdown("---")
 current_cfg = ZORA_MATRICES[secteur_actif]
-user_in = st.text_input(f"🎙️ Intercom Zora ({secteur_actif})")
 
-if user_in and api_key:
-    with st.spinner("Transmission..."):
-        full_p = f"{current_cfg['prompt']} Tu parles au Commandant Renaud. Système QUADRANT. Réponds de façon concise. Ordre : {user_in}"
-        try:
-            res = model.generate_content(full_p)
-            st.chat_message("assistant").write(res.text)
-            
-            audio = gTTS(text=res.text, lang=current_cfg['voice'])
-            ptr = io.BytesIO()
-            audio.write_to_fp(ptr)
-            st.audio(ptr, format="audio/mp3")
-        except Exception as e:
-            st.error(f"Échec de l'intercom : {e}") # Ceci affichera la vraie erreur
+# Ajout d'une clé unique pour forcer Streamlit à bien capturer l'entrée
+user_in = st.text_input(f"🎙️ Intercom Zora ({secteur_actif})", key=f"input_{secteur_actif}")
+
+if user_in:
+    if not api_key:
+        st.warning("⚠️ Commandant, Zora nécessite sa clé d'activation dans la barre latérale.")
+    else:
+        with st.spinner("Transmission à Zora en cours..."):
+            try:
+                # 1. Préparation du prompt
+                full_p = f"{current_cfg['prompt']} Tu parles au Commandant Renaud. Système QUADRANT. Réponds de façon concise et immersive. Ordre : {user_in}"
+                
+                # 2. Appel API
+                res = model.generate_content(full_p)
+                reponse_texte = res.text
+                
+                # 3. Affichage immédiat
+                st.chat_message("assistant").write(reponse_texte)
+                
+                # 4. Génération audio
+                audio = gTTS(text=reponse_texte, lang=current_cfg['voice'])
+                ptr = io.BytesIO()
+                audio.write_to_fp(ptr)
+                st.audio(ptr, format="audio/mp3")
+                
+            except Exception as e:
+                st.error(f"❌ Panne de l'intercom : {e}")
         
