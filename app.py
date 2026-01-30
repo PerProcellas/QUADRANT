@@ -111,5 +111,6 @@ if user_in and api_key:
             ptr = io.BytesIO()
             audio.write_to_fp(ptr)
             st.audio(ptr, format="audio/mp3")
-        except:
-            st.error("Échec de l'intercom.")
+        except Exception as e:
+            st.error(f"Échec de l'intercom : {e}") # Ceci affichera la vraie erreur
+        
