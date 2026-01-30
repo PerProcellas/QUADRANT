@@ -57,13 +57,9 @@ ZORA_MATRICES = {
     }
 }
 
-# --- NAVIGATION ---
-st.sidebar.title("📡 PROJET QUADRANT")
-st.sidebar.subheader("Système : USS PROCELLAS")
-st.sidebar.markdown("---")
-
-secteur = st.sidebar.radio("Navigation :", list(ZORA_MATRICES.keys()))
-
+# --- NAVIGATION DES SECTEURS ---
+st.sidebar.title("🚀 PROJET : USS PROCELLAS") # Titre principal
+st.sidebar.subheader("Système : QUADRANT")    # Sous-système
 st.sidebar.markdown("---")
 
 # --- CONFIGURATION API KEY ---
