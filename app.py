@@ -73,10 +73,15 @@ api_key = st.sidebar.text_input("Clé d'activation Zora", type="password")
 if api_key:
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-        st.sidebar.success(f"Zora Connectée")
+        # On demande à Google la liste des modèles disponibles pour TA clé
+        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        # On cherche celui qui contient "flash"
+        flash_model = next((m for m in models if "flash" in m), models[0])
+        
+        model = genai.GenerativeModel(flash_model)
+        st.sidebar.success(f"Zora Connectée ({flash_model})")
     except Exception as e:
-        st.sidebar.error(f"Erreur API")
+        st.sidebar.error(f"Liaison interrompue : {e}")
 
 # --- AFFICHAGE DES SECTEURS ---
 st.title(f"Secteur : {secteur_actif}")
